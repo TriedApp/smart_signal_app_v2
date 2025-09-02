@@ -17,7 +17,7 @@ if not exist ".git" (
   git remote add origin https://github.com/TriedApp/smartsignal.git
 )
 
-echo ✅ اضافه کردن فایل‌ها...
+echo ✅ اضافه کردن فایل‌ها به Git...
 git add .
 
 echo ✅ کامیت تغییرات...
@@ -27,5 +27,5 @@ echo ✅ پوش کردن به GitHub...
 git push --set-upstream origin main
 
 echo 🎯 حالا برو به Render و Manual Deploy رو بزن
-echo ✅ گزینه 'Deploy latest commit' رو انتخاب کن
+echo ✅ گزینه 'Deploy latest commit' رو انتخاب کن و منتظر بیلد باش
 pause
