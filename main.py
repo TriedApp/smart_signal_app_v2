@@ -14,3 +14,13 @@ def get_signal(symbol: str, timeframe: str = "1h"):
         "technical": tech, 
         "ml": ml 
     }
+
+
+
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/")
+def read_root():
+    return {"message": "SmartSignalBot is running!"}
