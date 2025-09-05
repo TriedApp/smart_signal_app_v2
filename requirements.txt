@@ -3,3 +3,5 @@ uvicorn
 pandas
 ta
 scikit-learn
+numpy
+requests
