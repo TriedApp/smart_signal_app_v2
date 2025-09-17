@@ -1,6 +1,16 @@
+from dotenv import load_dotenv
+import os
 import requests
 import smtplib
 from email.mime.text import MIMEText
+
+load_dotenv()
+
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+EMAIL_USER = os.getenv("EMAIL_USER")
+EMAIL_PASS = os.getenv("EMAIL_PASS")
+EMAIL_TO   = os.getenv("EMAIL_TO")
 
 def get_signal():
     try:
@@ -14,18 +24,13 @@ def get_signal():
         return f"❌ خطا در دریافت سیگنال: {e}"
 
 def send_telegram(msg):
-    token = "YOUR_TELEGRAM_BOT_TOKEN"
-    chat_id = "YOUR_CHAT_ID"
-    url = f"https://api.telegram.org/bot{token}/sendMessage"
-    requests.post(url, data={"chat_id": chat_id, "text": msg})
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    requests.post(url, data={"chat_id": TELEGRAM_CHAT_ID, "text": msg})
 
 def send_email(msg):
-    sender = "your@email.com"
-    password = "your_password"
-    receiver = "recipient@email.com"
     smtp = smtplib.SMTP_SSL("smtp.gmail.com", 465)
-    smtp.login(sender, password)
-    smtp.sendmail(sender, receiver, MIMEText(msg))
+    smtp.login(EMAIL_USER, EMAIL_PASS)
+    smtp.sendmail(EMAIL_USER, EMAIL_TO, MIMEText(msg))
     smtp.quit()
 
 signal = get_signal()
