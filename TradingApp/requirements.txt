@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+requests
+python-dotenv
+openai
+transformers
+smtplib
+email-validator
