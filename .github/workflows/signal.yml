@@ -2,8 +2,8 @@ name: Signal Dispatcher
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
-  workflow_dispatch:
+    - cron: '*/5 * * * *'  # اجرای خودکار هر ۵ دقیقه
+  workflow_dispatch:        # اجرای دستی از GitHub
 
 env:
   TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -15,8 +15,9 @@ env:
 jobs:
   run-signal:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Set up Python
