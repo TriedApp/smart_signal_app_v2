@@ -29,4 +29,4 @@ jobs:
         run: pip install requests python-dotenv
 
       - name: Run signal script
-        run: python TradingApp/signal_bot.py
+        run: python TradingApp/scripts/signal_bot.py
