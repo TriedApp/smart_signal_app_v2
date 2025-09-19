@@ -25,6 +25,8 @@ def send_email(signal_text):
     smtp_server = "smtp.mail.yahoo.com"
     smtp_port = 587
 
+    print("📡 در حال استفاده از سرور:", smtp_server)
+
     try:
         smtp = smtplib.SMTP(smtp_server, smtp_port)
         smtp.starttls()
