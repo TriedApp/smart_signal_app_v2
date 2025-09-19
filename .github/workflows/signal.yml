@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: 🛠 تنظیم مسیر ایمپورت‌ها (PYTHONPATH)
+        run: echo "PYTHONPATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Checkout repository
         uses: actions/checkout@v3
 
