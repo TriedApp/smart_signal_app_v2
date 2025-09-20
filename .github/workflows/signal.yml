@@ -19,6 +19,7 @@ jobs:
     steps:
       - name: 🛠 تنظیم مسیر ایمپورت‌ها (PYTHONPATH)
         run: echo "PYTHONPATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -28,7 +29,9 @@ jobs:
           python-version: '3.10'
 
       - name: Install dependencies
-        run: pip install requests python-dotenv
+        run: |
+          pip install --upgrade pip
+          pip install pandas numpy requests python-dotenv
 
       - name: Run signal script
         run: python TradingApp/scripts/signal_bot.py
