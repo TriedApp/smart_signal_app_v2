@@ -3,37 +3,37 @@ import requests
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import time
 
 def get_signal():
     print("📡 شروع دریافت سیگنال از API رندر...")
-    try:
-        url = "https://smart-signal-app-v2.onrender.com/signal?symbol=BTCUSDT&timeframe=1h"
-        r = requests.get(url, timeout=10)
-        print(f"📡 وضعیت پاسخ API: {r.status_code}")
-        print(f"📡 متن پاسخ: {r.text[:100]}")  # فقط ۱۰۰ کاراکتر اول برای امنیت
-
-        if r.status_code != 200 or not r.text.strip():
-            print("❌ پاسخ API نامعتبر یا خالی بود.")
-            return []
-
-        data = r.json()
-        if "symbol" not in data or "technical" not in data:
-            print("⚠️ داده‌ی ناقص دریافت شد:", data)
-            return []
-
-        signal = {
-            "symbol": data["symbol"],
-            "action": data["technical"],
-            "entry": 0.0,
-            "stop_loss": 0.0,
-            "take_profit": True if data["technical"] == "buy" else False
-        }
-        print("✅ سیگنال دریافت شد:", signal)
-        return [signal]
-
-    except Exception as e:
-        print("❌ خطا در دریافت سیگنال:", e)
-        return []
+    url = "https://smart-signal-app-v2.onrender.com/signal?symbol=BTCUSDT&timeframe=1h"
+    for attempt in range(3):
+        try:
+            r = requests.get(url, timeout=20)
+            print(f"📡 تلاش {attempt+1} | وضعیت پاسخ: {r.status_code}")
+            if r.status_code == 200 and r.text.strip():
+                data = r.json()
+                if "symbol" in data and "technical" in data:
+                    signal = {
+                        "symbol": data["symbol"],
+                        "action": data["technical"],
+                        "entry": 0.0,
+                        "stop_loss": 0.0,
+                        "take_profit": True if data["technical"] == "buy" else False
+                    }
+                    print("✅ سیگنال دریافت شد:", signal)
+                    return [signal]
+                else:
+                    print("⚠️ داده‌ی ناقص دریافت شد:", data)
+                    return []
+            else:
+                print("⚠️ پاسخ نامعتبر یا خالی بود.")
+        except Exception as e:
+            print(f"❌ تلاش {attempt+1} شکست خورد:", e)
+            time.sleep(5)
+    print("❌ همه تلاش‌ها برای دریافت سیگنال شکست خورد.")
+    return []
 
 def format_signal(signal):
     try:
@@ -55,9 +55,7 @@ def send_email(signal_text):
     print("📨 شروع ارسال ایمیل...")
     email_user = os.getenv("EMAIL_USER")
     email_pass = os.getenv("EMAIL_PASS")
-    email_to = os.getenv("EMAIL_TO")
-    if not email_to or not email_to.strip():
-        email_to = email_user
+    email_to = os.getenv("EMAIL_TO") or email_user
 
     if not email_user or not email_pass:
         print("❌ متغیرهای ایمیل تعریف نشده‌اند.")
