@@ -1,62 +1,119 @@
-import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
+import requests
 import smtplib
-import os
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from signal_engine.generate_signal import get_mexc_data, run_strategy
+
+def get_signal():
+    print("📡 شروع دریافت سیگنال از API رندر...")
+    try:
+        url = "https://smart-signal-app-v2.onrender.com/signal?symbol=BTCUSDT&timeframe=1h"
+        r = requests.get(url, timeout=10)
+        print(f"📡 وضعیت پاسخ API: {r.status_code}")
+        print(f"📡 متن پاسخ: {r.text[:100]}")  # فقط ۱۰۰ کاراکتر اول برای امنیت
+
+        if r.status_code != 200 or not r.text.strip():
+            print("❌ پاسخ API نامعتبر یا خالی بود.")
+            return []
+
+        data = r.json()
+        if "symbol" not in data or "technical" not in data:
+            print("⚠️ داده‌ی ناقص دریافت شد:", data)
+            return []
+
+        signal = {
+            "symbol": data["symbol"],
+            "action": data["technical"],
+            "entry": 0.0,
+            "stop_loss": 0.0,
+            "take_profit": True if data["technical"] == "buy" else False
+        }
+        print("✅ سیگنال دریافت شد:", signal)
+        return [signal]
+
+    except Exception as e:
+        print("❌ خطا در دریافت سیگنال:", e)
+        return []
 
 def format_signal(signal):
-    return (
-        f"📡 سیگنال جدید:\n"
-        f"نماد: {signal['symbol']}\n"
-        f"عملیات: {signal['action']}\n"
-        f"ورود: {signal['entry']:.8f}\n"
-        f"حد ضرر: {signal['stop_loss']:.8f}\n"
-        f"{'✅ حد سود فعال' if signal['take_profit'] else '⏳ در انتظار حد سود'}"
-    )
+    try:
+        text = (
+            f"📡 سیگنال جدید:\n"
+            f"نماد: {signal['symbol']}\n"
+            f"عملیات: {signal['action']}\n"
+            f"ورود: {signal['entry']:.8f}\n"
+            f"حد ضرر: {signal['stop_loss']:.8f}\n"
+            f"{'✅ حد سود فعال' if signal['take_profit'] else '⏳ در انتظار حد سود'}"
+        )
+        print("🧾 متن سیگنال ساخته شد:\n", text)
+        return text
+    except Exception as e:
+        print("❌ خطا در ساخت متن سیگنال:", e)
+        return ""
 
 def send_email(signal_text):
+    print("📨 شروع ارسال ایمیل...")
     email_user = os.getenv("EMAIL_USER")
     email_pass = os.getenv("EMAIL_PASS")
+    email_to = os.getenv("EMAIL_TO")
+    if not email_to or not email_to.strip():
+        email_to = email_user
 
     if not email_user or not email_pass:
-        print("❌ متغیرهای محیطی EMAIL_USER یا EMAIL_PASS تعریف نشده‌اند.")
+        print("❌ متغیرهای ایمیل تعریف نشده‌اند.")
         return
 
-    smtp_server = "smtp.mail.yahoo.com"
-    smtp_port = 587
-
-    print("📡 در حال استفاده از سرور:", smtp_server)
-
     try:
-        smtp = smtplib.SMTP(smtp_server, smtp_port)
-        smtp.starttls()
+        smtp = smtplib.SMTP_SSL("smtp.mail.yahoo.com", 465)
         smtp.login(email_user, email_pass)
 
         msg = MIMEMultipart()
         msg["From"] = email_user
-        msg["To"] = email_user  # گیرنده می‌تونه تغییر کنه
+        msg["To"] = email_to
         msg["Subject"] = "📈 سیگنال معاملاتی جدید"
         msg.attach(MIMEText(signal_text, "plain"))
 
         smtp.send_message(msg)
         smtp.quit()
-        print("✅ ایمیل با موفقیت ارسال شد.")
-
-    except smtplib.SMTPAuthenticationError as e:
-        print("❌ خطای احراز هویت SMTP:", e)
-    except smtplib.SMTPConnectError as e:
-        print("❌ اتصال به سرور SMTP برقرار نشد:", e)
-    except smtplib.SMTPException as e:
-        print("❌ خطای SMTP:", e)
+        print("✅ ایمیل ارسال شد.")
     except Exception as e:
-        print("❌ خطای عمومی:", e)
+        print("❌ خطا در ارسال ایمیل:", e)
+
+def send_telegram(signal_text):
+    print("📨 شروع ارسال تلگرام...")
+    bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
+    chat_id = os.getenv("TELEGRAM_CHAT_ID")
+
+    if not bot_token or not chat_id:
+        print("❌ متغیرهای تلگرام تعریف نشده‌اند.")
+        return
+
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    payload = {
+        "chat_id": chat_id,
+        "text": signal_text
+    }
+
+    try:
+        r = requests.post(url, json=payload)
+        print(f"📡 پاسخ تلگرام: {r.status_code} | {r.text[:100]}")
+        if r.status_code == 200:
+            print("✅ پیام تلگرام ارسال شد.")
+        else:
+            print("❌ خطا در ارسال تلگرام:", r.text)
+    except Exception as e:
+        print("❌ خطای عمومی تلگرام:", e)
 
 if __name__ == "__main__":
-    df = get_mexc_data()
-    signals = run_strategy(df)
+    print("🚀 شروع اجرای فایل signal_bot.py")
+    signals = get_signal()
+    if not signals:
+        print("⚠️ هیچ سیگنالی دریافت نشد.")
     for signal in signals:
         signal_text = format_signal(signal)
+        if not signal_text.strip():
+            print("⚠️ متن سیگنال خالی بود، پیام ارسال نشد.")
+            continue
         send_email(signal_text)
+        send_telegram(signal_text)
+    print("🏁 پایان اجرای فایل.")

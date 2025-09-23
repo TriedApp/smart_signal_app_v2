@@ -2,36 +2,30 @@ name: Signal Dispatcher
 
 on:
   schedule:
-    - cron: '*/5 * * * *'  # اجرای خودکار هر ۵ دقیقه
-  workflow_dispatch:        # اجرای دستی از GitHub
-
-env:
-  TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-  TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-  EMAIL_USER: ${{ secrets.EMAIL_USER }}
-  EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
-  EMAIL_TO: ${{ secrets.EMAIL_TO }}
+    - cron: '*/5 * * * *'  # اجرا هر ۵ دقیقه
+  workflow_dispatch:
 
 jobs:
-  run-signal:
+  send-signal:
     runs-on: ubuntu-latest
+    env:
+      EMAIL_USER: ${{ secrets.EMAIL_USER }}
+      EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+      EMAIL_TO: ${{ secrets.EMAIL_TO }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
     steps:
-      - name: 🛠 تنظیم مسیر ایمپورت‌ها (PYTHONPATH)
-        run: echo "PYTHONPATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
       - name: Install dependencies
-        run: |
-          pip install --upgrade pip
-          pip install pandas numpy requests python-dotenv
+        run: pip install -r requirements.txt
 
-      - name: Run signal script
+      - name: Run signal bot
         run: python TradingApp/scripts/signal_bot.py
