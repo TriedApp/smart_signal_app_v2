@@ -20,7 +20,7 @@ def get_signal():
                         "action": data["technical"],
                         "entry": 0.0,
                         "stop_loss": 0.0,
-                        "take_profit": True if data["technical"] == "buy" else False
+                        "take_profit": data["technical"] == "buy"
                     }
                     print("✅ سیگنال دریافت شد:", signal)
                     return [signal]
@@ -57,9 +57,15 @@ def send_email(signal_text):
     email_pass = os.getenv("EMAIL_PASS")
     email_to = os.getenv("EMAIL_TO") or email_user
 
+    print("📤 ایمیل فرستنده:", email_user)
+    print("📤 ایمیل گیرنده:", email_to)
+
     if not email_user or not email_pass:
-        print("❌ متغیرهای ایمیل تعریف نشده‌اند.")
+        print("❌ متغیرهای EMAIL_USER یا EMAIL_PASS تعریف نشده‌اند.")
         return
+
+    if not email_to:
+        print("⚠️ مقدار EMAIL_TO خالی است، ایمیل به فرستنده ارسال می‌شود.")
 
     try:
         smtp = smtplib.SMTP_SSL("smtp.mail.yahoo.com", 465)
