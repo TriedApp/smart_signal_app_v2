@@ -27,8 +27,8 @@ jobs:
 
     - name: Run signal bot
       run: |
-        export PYTHONPATH="${{ github.workspace }}"
-        python TradingApp/scripts/signal_bot.py
+        cd TradingApp/scripts
+        python signal_bot.py
 
       env:
         EMAIL_HOST: smtp.gmail.com
