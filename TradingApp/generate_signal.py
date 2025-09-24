@@ -1,21 +1,33 @@
-from analysis.ml_model import predict_signal  # اصلاح مسیر ایمپورت مطابق با ساختار فعلی
+from analysis.ml_model import predict_signal  # ایمپورت مدل تحلیل
 import pandas as pd
+import requests
 
-def get_mexc_data(symbol: str, timeframe: str) -> pd.DataFrame:
+def get_binance_data(symbol: str, interval: str = "1h", limit: int = 100) -> pd.DataFrame:
     """
-    دریافت داده‌های بازار از صرافی MEXC برای نماد و تایم‌فریم مشخص‌شده.
-    این تابع باید داده‌ها را از API یا فایل محلی دریافت کند.
+    دریافت داده‌های کندل از Binance بدون نیاز به API Key.
     """
-    # اینجا باید کد واقعی برای دریافت داده‌ها قرار بگیره
-    # برای مثال:
-    # df = fetch_from_mexc_api(symbol, timeframe)
-    df = pd.DataFrame()  # جایگزین موقت
+    url = f"https://api.binance.com/api/v3/klines?symbol={symbol}&interval={interval}&limit={limit}"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+    except Exception as e:
+        print(f"❌ خطا در دریافت داده از Binance برای {symbol}: {e}")
+        return pd.DataFrame()
+
+    df = pd.DataFrame(data, columns=[
+        "timestamp", "open", "high", "low", "close", "volume",
+        "close_time", "quote_volume", "trades", "taker_buy_volume",
+        "taker_buy_quote", "ignore"
+    ])
+    df["close"] = df["close"].astype(float)
+    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms")
     return df
 
 def run_strategy(df: pd.DataFrame) -> str:
     """
-    اجرای مدل تحلیل تکنیکال یا یادگیری ماشین روی داده‌ها.
-    خروجی باید یکی از سیگنال‌های 'buy', 'sell', یا None باشد.
+    اجرای مدل تحلیل روی داده‌های بازار.
+    خروجی: 'buy', 'sell', یا None
     """
     if df.empty:
         print("⚠️ دیتافریم خالی است، تحلیل انجام نمی‌شود.")
