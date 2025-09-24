@@ -5,6 +5,16 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import time
 
+def get_price(symbol="BTCUSDT"):
+    url = f"https://api.mexc.com/api/v3/ticker/price?symbol={symbol}"
+    try:
+        r = requests.get(url, timeout=10)
+        if r.status_code == 200:
+            return float(r.json()["price"])
+    except Exception as e:
+        print("❌ خطا در دریافت قیمت:", e)
+    return 0.0
+
 def get_signal():
     print("📡 شروع دریافت سیگنال از API رندر...")
     url = "https://smart-signal-app-v2.onrender.com/signal?symbol=BTCUSDT&timeframe=1h"
@@ -15,11 +25,12 @@ def get_signal():
             if r.status_code == 200 and r.text.strip():
                 data = r.json()
                 if "symbol" in data and "technical" in data:
+                    price = get_price(data["symbol"])
                     signal = {
                         "symbol": data["symbol"],
                         "action": data["technical"],
-                        "entry": 0.0,
-                        "stop_loss": 0.0,
+                        "entry": price,
+                        "stop_loss": price * 0.995,
                         "take_profit": data["technical"] == "buy"
                     }
                     print("✅ سیگنال دریافت شد:", signal)
@@ -63,9 +74,6 @@ def send_email(signal_text):
     if not email_user or not email_pass:
         print("❌ متغیرهای EMAIL_USER یا EMAIL_PASS تعریف نشده‌اند.")
         return
-
-    if not email_to:
-        print("⚠️ مقدار EMAIL_TO خالی است، ایمیل به فرستنده ارسال می‌شود.")
 
     try:
         smtp = smtplib.SMTP_SSL("smtp.mail.yahoo.com", 465)
