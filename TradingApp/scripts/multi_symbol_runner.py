@@ -1,4 +1,10 @@
-from TradingApp.scripts.generate_signal import get_mexc_data, run_strategy
+import sys
+import os
+
+# اضافه کردن مسیر پروژه به PYTHONPATH برای ایمپورت صحیح
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from scripts.generate_signal import get_mexc_data, run_strategy
 
 symbols = [
     "BTCUSDT", "ETHUSDT", "XRPUSDT", "LTCUSDT", "DOGEUSDT", "SHIBUSDT", "TRXUSDT", "ADAUSDT", "DOTUSDT", "BNBUSDT",
