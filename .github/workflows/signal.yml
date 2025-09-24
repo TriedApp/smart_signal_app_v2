@@ -28,4 +28,4 @@ jobs:
         run: pip install pandas requests
 
       - name: Run signal bot
-        run: python TradingApp/scripts/multi_symbol_runner.py
+        run: python TradingApp/scripts/signal_bot.py
