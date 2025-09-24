@@ -1,9 +1,9 @@
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from generate_signal import get_mexc_data, run_strategy
-from analysis.ml_model import predict_trend  # اگر مدل ML در همین مسیر باشه
+from analysis.ml_model import predict_trend  # اگر فایل ml_model.py در مسیر analysis باشه
 
 symbols = [
     "BTCUSDT", "ETHUSDT", "XRPUSDT", "LTCUSDT", "DOGEUSDT", "BNBUSDT"
