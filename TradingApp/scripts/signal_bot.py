@@ -3,88 +3,52 @@ import requests
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import time
+from TradingApp.scripts.generate_signal import get_mexc_data, run_strategy
 
-def get_price(symbol="BTCUSDT"):
-    url = f"https://api.mexc.com/api/v3/ticker/price?symbol={symbol}"
-    try:
-        r = requests.get(url, timeout=10)
-        if r.status_code == 200:
-            return float(r.json()["price"])
-    except Exception as e:
-        print("❌ خطا در دریافت قیمت:", e)
-    return 0.0
+# لیست نمادها
+symbols = [
+    "BTCUSDT", "ETHUSDT", "XRPUSDT", "LTCUSDT", "DOGEUSDT", "SHIBUSDT", "TRXUSDT", "ADAUSDT", "DOTUSDT", "BNBUSDT",
+    "SOLUSDT", "AVAXUSDT", "UNIUSDT", "LINKUSDT", "XLMUSDT", "ATOMUSDT", "EOSUSDT", "DAIUSDT", "USDCUSDT", "MATICUSDT",
+    "AAVEUSDT", "AXSUSDT", "SANDUSDT", "CHZUSDT", "FTMUSDT", "NEARUSDT", "GALAUSDT", "RAYUSDT", "CAKEUSDT", "CRVUSDT",
+    "1INCHUSDT", "ENJUSDT", "BCHUSDT", "ETCUSDT", "XMRUSDT", "ZECUSDT", "SNXUSDT", "COMPUSDT", "YFIUSDT", "ALGOUSDT",
+    "TOMOUSDT", "KSMUSDT", "KNCUSDT", "RENUSDT", "BATUSDT", "SUSHIUSDT", "STORJUSDT", "CELRUSDT", "ANKRUSDT", "CVCUSDT",
+    "BALUSDT", "GMTUSDT", "LRCUSDT", "DYDXUSDT", "GMXUSDT", "OPUSDT", "ARBUSDT", "INJUSDT", "PEPEUSDT", "FLOKIUSDT",
+    "ORDIUSDT", "WLDUSDT", "TUSDUSDT", "PYTHUSDT", "BONKUSDT", "TIAUSDT", "JUPUSDT", "GRTUSDT", "RNDRUSDT", "LPTUSDT",
+    "MINAUSDT", "BLURUSDT", "ICPUSDT", "APTUSDT", "SUIUSDT", "C98USDT", "XVSUSDT", "RUNEUSDT", "DODOUSDT", "HOOKUSDT",
+    "SSVUSDT", "IDUSDT", "LDOUSDT", "FETUSDT", "AGIXUSDT", "OCEANUSDT", "BANDUSDT", "QNTUSDT", "STMXUSDT", "XNOUSDT",
+    "NMRUSDT", "NKNUSDT", "CTSIUSDT", "SKLUSDT", "VETUSDT", "VTHOUSDT", "COTIUSDT", "MASKUSDT", "HIGHUSDT", "SPELLUSDT",
+    "SXPUSDT", "DENTUSDT"
+]
 
-def get_signal():
-    print("📡 شروع دریافت سیگنال از API رندر...")
-    url = "https://smart-signal-app-v2.onrender.com/signal?symbol=BTCUSDT&timeframe=1h"
-    for attempt in range(3):
-        try:
-            r = requests.get(url, timeout=20)
-            print(f"📡 تلاش {attempt+1} | وضعیت پاسخ: {r.status_code}")
-            if r.status_code == 200 and r.text.strip():
-                data = r.json()
-                if "symbol" in data and "technical" in data:
-                    price = get_price(data["symbol"])
-                    signal = {
-                        "symbol": data["symbol"],
-                        "action": data["technical"],
-                        "entry": price,
-                        "stop_loss": price * 0.995,
-                        "take_profit": data["technical"] == "buy"
-                    }
-                    print("✅ سیگنال دریافت شد:", signal)
-                    return [signal]
-                else:
-                    print("⚠️ داده‌ی ناقص دریافت شد:", data)
-                    return []
-            else:
-                print("⚠️ پاسخ نامعتبر یا خالی بود.")
-        except Exception as e:
-            print(f"❌ تلاش {attempt+1} شکست خورد:", e)
-            time.sleep(5)
-    print("❌ همه تلاش‌ها برای دریافت سیگنال شکست خورد.")
-    return []
+# لیست تایم‌فریم‌ها
+timeframes = ["5m", "15m", "30m", "1h", "4h", "1d"]
 
 def format_signal(signal):
-    try:
-        text = (
-            f"📡 سیگنال جدید:\n"
-            f"نماد: {signal['symbol']}\n"
-            f"عملیات: {signal['action']}\n"
-            f"ورود: {signal['entry']:.8f}\n"
-            f"حد ضرر: {signal['stop_loss']:.8f}\n"
-            f"{'✅ حد سود فعال' if signal['take_profit'] else '⏳ در انتظار حد سود'}"
-        )
-        print("🧾 متن سیگنال ساخته شد:\n", text)
-        return text
-    except Exception as e:
-        print("❌ خطا در ساخت متن سیگنال:", e)
-        return ""
+    return (
+        f"📡 سیگنال جدید:\n"
+        f"نماد: {signal['symbol']}\n"
+        f"تایم‌فریم: {signal['timeframe']}\n"
+        f"عملیات: {signal['action']}\n"
+        f"ورود: {signal['entry']:.8f}\n"
+        f"حد ضرر: {signal['stop_loss']:.8f}\n"
+        f"{'✅ حد سود فعال' if signal['take_profit'] else '⏳ در انتظار حد سود'}"
+    )
 
 def send_email(signal_text):
-    print("📨 شروع ارسال ایمیل...")
     email_user = os.getenv("EMAIL_USER")
     email_pass = os.getenv("EMAIL_PASS")
     email_to = os.getenv("EMAIL_TO") or email_user
-
-    print("📤 ایمیل فرستنده:", email_user)
-    print("📤 ایمیل گیرنده:", email_to)
-
     if not email_user or not email_pass:
-        print("❌ متغیرهای EMAIL_USER یا EMAIL_PASS تعریف نشده‌اند.")
+        print("❌ ایمیل تنظیم نشده.")
         return
-
     try:
         smtp = smtplib.SMTP_SSL("smtp.mail.yahoo.com", 465)
         smtp.login(email_user, email_pass)
-
         msg = MIMEMultipart()
         msg["From"] = email_user
         msg["To"] = email_to
         msg["Subject"] = "📈 سیگنال معاملاتی جدید"
         msg.attach(MIMEText(signal_text, "plain"))
-
         smtp.send_message(msg)
         smtp.quit()
         print("✅ ایمیل ارسال شد.")
@@ -92,40 +56,38 @@ def send_email(signal_text):
         print("❌ خطا در ارسال ایمیل:", e)
 
 def send_telegram(signal_text):
-    print("📨 شروع ارسال تلگرام...")
     bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
-
     if not bot_token or not chat_id:
-        print("❌ متغیرهای تلگرام تعریف نشده‌اند.")
+        print("❌ تلگرام تنظیم نشده.")
         return
-
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    payload = {
-        "chat_id": chat_id,
-        "text": signal_text
-    }
-
+    payload = {"chat_id": chat_id, "text": signal_text}
     try:
         r = requests.post(url, json=payload)
-        print(f"📡 پاسخ تلگرام: {r.status_code} | {r.text[:100]}")
         if r.status_code == 200:
             print("✅ پیام تلگرام ارسال شد.")
         else:
             print("❌ خطا در ارسال تلگرام:", r.text)
     except Exception as e:
-        print("❌ خطای عمومی تلگرام:", e)
+        print("❌ خطای تلگرام:", e)
 
 if __name__ == "__main__":
     print("🚀 شروع اجرای فایل signal_bot.py")
-    signals = get_signal()
-    if not signals:
-        print("⚠️ هیچ سیگنالی دریافت نشد.")
-    for signal in signals:
-        signal_text = format_signal(signal)
-        if not signal_text.strip():
-            print("⚠️ متن سیگنال خالی بود، پیام ارسال نشد.")
-            continue
-        send_email(signal_text)
-        send_telegram(signal_text)
-    print("🏁 پایان اجرای فایل.")
+    total_signals = 0
+    for symbol in symbols:
+        for tf in timeframes:
+            print(f"🔍 بررسی {symbol} در تایم‌فریم {tf}")
+            df = get_mexc_data(symbol=symbol, interval=tf, limit=100)
+            if df is None or df.empty:
+                continue
+            signals = run_strategy(df)
+            for signal in signals:
+                signal["symbol"] = symbol
+                signal["timeframe"] = tf
+                signal_text = format_signal(signal)
+                print("✅ سیگنال:", signal_text)
+                send_email(signal_text)
+                send_telegram(signal_text)
+                total_signals += 1
+    print(f"🏁 پایان اجرا | مجموع سیگنال‌ها: {total_signals}")
