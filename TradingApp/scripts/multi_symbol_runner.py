@@ -1,10 +1,4 @@
-import sys
-import os
-
-# 🔧 اضافه کردن مسیر بالاتر برای دسترسی به فایل‌های اصلی
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-
-from generate_signal import get_mexc_data, run_strategy
+from TradingApp.generate_signal import get_mexc_data, run_strategy
 
 def generate_all_signals():
     symbols = ["BTCUSDT", "ETHUSDT"]
