@@ -1,24 +1,23 @@
-from TradingApp.generate_signal import get_mexc_data, run_strategy
+from TradingApp.generate_signal import get_binance_data, run_strategy
+import pandas as pd
 
-def generate_all_signals():
-    symbols = ["BTCUSDT", "ETHUSDT"]
-    timeframe = "1h"
-    all_signals = []
+def generate_all_signals(symbols: list, interval: str = "1h") -> dict:
+    """
+    دریافت داده برای چند نماد و اجرای استراتژی تحلیل روی هر کدام.
+    خروجی: دیکشنری از سیگنال‌ها
+    """
+    signals = {}
 
     for symbol in symbols:
         print(f"📡 دریافت داده برای {symbol}...")
-        try:
-            df = get_mexc_data(symbol, timeframe)
-            signal = run_strategy(df)
-            if signal:
-                print(f"✅ سیگنال برای {symbol}: {signal}")
-                all_signals.append({
-                    "symbol": symbol,
-                    "technical": signal
-                })
-            else:
-                print(f"⏳ سیگنال برای {symbol} یافت نشد.")
-        except Exception as e:
-            print(f"❌ خطا در پردازش {symbol}:", e)
+        df = get_binance_data(symbol, interval)
+        signal = run_strategy(df)
 
-    return all_signals
+        if signal:
+            print(f"✅ سیگنال برای {symbol}: {signal}")
+            signals[symbol] = signal
+        else:
+            print(f"⏳ سیگنال برای {symbol} یافت نشد.")
+            signals[symbol] = None
+
+    return signals
