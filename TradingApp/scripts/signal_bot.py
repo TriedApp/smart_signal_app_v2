@@ -1,8 +1,8 @@
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from multi_symbol_runner import generate_all_signals
+from TradingApp.scripts.multi_symbol_runner import generate_all_signals
 
 import smtplib
 import ssl

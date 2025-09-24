@@ -1,9 +1,9 @@
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from generate_signal import get_mexc_data, run_strategy
-from analysis.ml_model import predict_trend  # اگر مدل ML در همین مسیر یا قابل ایمپورت باشه
+from TradingApp.scripts.generate_signal import get_mexc_data, run_strategy
+from TradingApp.scripts.analysis.ml_model import predict_trend  # اگر مدل ML در این مسیر باشه
 
 symbols = [
     "BTCUSDT", "ETHUSDT", "XRPUSDT", "LTCUSDT", "DOGEUSDT", "BNBUSDT"
@@ -22,7 +22,6 @@ def generate_all_signals():
                 print(f"⚠️ داده‌ای برای {symbol} در {tf} دریافت نشد.")
                 continue
 
-            # بررسی روند تایم‌فریم 1h برای شرط نهایی
             tf1h_df = get_mexc_data(symbol=symbol, interval="1h", limit=100)
             tf1h_trend = "neutral"
             if tf1h_df is not None and not tf1h_df.empty:
