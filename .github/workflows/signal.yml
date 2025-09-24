@@ -2,8 +2,8 @@ name: Signal Dispatcher
 
 on:
   schedule:
-    - cron: '*/5 * * * *'  # اجرای هر 5 دقیقه
-  workflow_dispatch:       # اجرای دستی از GitHub
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
 
 jobs:
   send-signal:
