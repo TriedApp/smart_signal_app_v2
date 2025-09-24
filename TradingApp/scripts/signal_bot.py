@@ -1,9 +1,14 @@
+import sys
+import os
+
+# اضافه کردن مسیر پروژه به PYTHONPATH برای ایمپورت صحیح در GitHub Actions
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from scripts.multi_symbol_runner import generate_all_signals
 from scripts.generate_signal import get_mexc_data, run_strategy
 
 import smtplib
 import ssl
-import os
 import requests
 
 def format_signal(signal):
