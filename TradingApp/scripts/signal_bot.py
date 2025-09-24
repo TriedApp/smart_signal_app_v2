@@ -20,9 +20,6 @@ def send_email(signal_text):
     email_pass = os.getenv("EMAIL_PASS")
     email_to = os.getenv("EMAIL_TO") or email_user
 
-    print("📤 ایمیل فرستنده:", email_user)
-    print("📤 ایمیل گیرنده:", email_to)
-
     if not email_user or not email_pass:
         print("❌ متغیرهای ایمیل تعریف نشده‌اند.")
         return
@@ -56,7 +53,6 @@ def send_telegram(signal_text):
 
     try:
         r = requests.post(url, json=payload)
-        print(f"📡 پاسخ تلگرام: {r.status_code} | {r.text[:100]}")
         if r.status_code == 200:
             print("✅ پیام تلگرام ارسال شد.")
         else:
