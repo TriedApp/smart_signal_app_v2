@@ -20,10 +20,11 @@ jobs:
 
       - name: 📦 نصب وابستگی‌ها
         run: pip install -r requirements.txt
+        working-directory: smart_signal_app_v2
 
       - name: 🚀 اجرای فایل سیگنال‌دهی
-        working-directory: smart_signal_app_v2
         run: python TradingApp/scripts/signal_bot.py
+        working-directory: smart_signal_app_v2
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
