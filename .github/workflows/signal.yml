@@ -9,6 +9,10 @@ jobs:
   send-signal:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: smart_signal_app_v2  # مسیر درست اجرای پروژه
+
     steps:
       - name: 📥 دریافت کد پروژه
         uses: actions/checkout@v3
