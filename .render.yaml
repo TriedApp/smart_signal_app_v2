@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: signal-bot
+    env: python
+    rootDir: smart_signal_app_v2
+    buildCommand: pip install -r requirements.txt
+    startCommand: python TradingApp/scripts/signal_bot.py
+    autoDeploy: true
