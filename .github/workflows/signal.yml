@@ -2,7 +2,7 @@ name: Signal Dispatcher
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '*/5 * * * *'  # اجرای هر ۵ دقیقه
   workflow_dispatch:
 
 jobs:
@@ -22,7 +22,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: 🚀 اجرای فایل سیگنال‌دهی
-        run: python -m TradingApp.scripts.signal_bot
+        run: python TradingApp/scripts/signal_bot.py
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
