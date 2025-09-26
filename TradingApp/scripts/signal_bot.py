@@ -2,13 +2,20 @@ from TradingApp.utils.data import get_mexc_klines
 from TradingApp.utils.strategy import generate_signal
 from TradingApp.utils.notify import send_email, send_telegram
 
-# نمادها با فرمت صحیح برای MEXC
 symbols = [
-    "BTC_USDT", "ETH_USDT", "XRP_USDT", "LTC_USDT", "DOGE_USDT",
-    "SHIB_USDT", "TRX_USDT", "ADA_USDT", "DOT_USDT", "BNB_USDT"
+    "BTCUSDT", "ETHUSDT", "XRPUSDT", "LTCUSDT", "DOGEUSDT", "SHIBUSDT", "TRXUSDT", "ADAUSDT", "DOTUSDT", "BNBUSDT",
+    "SOLUSDT", "AVAXUSDT", "UNIUSDT", "LINKUSDT", "XLMUSDT", "ATOMUSDT", "EOSUSDT", "DAIUSDT", "USDCUSDT", "MATICUSDT",
+    "AAVEUSDT", "AXSUSDT", "SANDUSDT", "CHZUSDT", "FTMUSDT", "NEARUSDT", "GALAUSDT", "RAYUSDT", "CAKEUSDT", "CRVUSDT",
+    "1INCHUSDT", "ENJUSDT", "BCHUSDT", "ETCUSDT", "XMRUSDT", "ZECUSDT", "SNXUSDT", "COMPUSDT", "YFIUSDT", "ALGOUSDT",
+    "TOMOUSDT", "KSMUSDT", "KNCUSDT", "RENUSDT", "BATUSDT", "SUSHIUSDT", "STORJUSDT", "CELRUSDT", "ANKRUSDT", "CVCUSDT",
+    "BALUSDT", "GMTUSDT", "LRCUSDT", "DYDXUSDT", "GMXUSDT", "OPUSDT", "ARBUSDT", "INJUSDT", "PEPEUSDT", "FLOKIUSDT",
+    "ORDIUSDT", "WLDUSDT", "TUSDUSDT", "PYTHUSDT", "BONKUSDT", "TIAUSDT", "JUPUSDT", "GRTUSDT", "RNDRUSDT", "LPTUSDT",
+    "MINAUSDT", "BLURUSDT", "ICPUSDT", "APTUSDT", "SUIUSDT", "C98USDT", "XVSUSDT", "RUNEUSDT", "DODOUSDT", "HOOKUSDT",
+    "SSVUSDT", "IDUSDT", "LDOUSDT", "FETUSDT", "AGIXUSDT", "OCEANUSDT", "BANDUSDT", "QNTUSDT", "STMXUSDT", "XNOUSDT",
+    "NMRUSDT", "NKNUSDT", "CTSIUSDT", "SKLUSDT", "VETUSDT", "VTHOUSDT", "COTIUSDT", "MASKUSDT", "HIGHUSDT", "SPELLUSDT",
+    "SXPUSDT", "DENTUSDT"
 ]
 
-# فقط تایم‌فریم 1h برای تحلیل فعلی
 interval = "1h"
 
 for symbol in symbols:
@@ -23,9 +30,7 @@ for symbol in symbols:
         print(f"❌ خطا در دریافت داده برای {symbol}: {e}")
         continue
 
-    # ساخت دیکشنری تایم‌فریم برای استراتژی
     df_dict = {interval: df}
-
     signal = generate_signal(df_dict, ai_trend="bullish", tf1h_trend="bullish")
 
     if signal:
