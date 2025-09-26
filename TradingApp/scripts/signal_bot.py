@@ -33,8 +33,7 @@ async def fetch_klines(session, symbol, interval):
 
             df = pd.DataFrame(klines, columns=[
                 "timestamp", "open", "high", "low", "close", "volume",
-                "close_time", "quote_volume", "trades", "taker_buy_base",
-                "taker_buy_quote", "ignore"
+                "close_time", "quote_volume"
             ])
             df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms")
             df = df[["timestamp", "open", "high", "low", "close", "volume"]]
