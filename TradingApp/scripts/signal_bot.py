@@ -1,16 +1,19 @@
-# 📦 ایمپورت‌های اصلی
+# 🚀 signal_bot.py — نسخه اصلاح‌شده برای GitHub Actions و اجرای لوکال
+
 import sys
 import os
 
-# 🛠 تنظیم مسیر برای اجرای صحیح در GitHub Actions یا Render
+# 🛠 تنظیم مسیر برای شناسایی ماژول‌ها در GitHub Actions
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 # 📡 ایمپورت توابع سیگنال و ارسال
 from TradingApp.scripts.multi_symbol_runner import generate_all_signals
 from TradingApp.utils.notify import send_email, send_telegram
 
-# 🎨 قالب‌بندی سیگنال برای ارسال
 def format_signal(signal: dict) -> str:
+    """
+    قالب‌بندی سیگنال برای ارسال.
+    """
     return (
         f"📡 سیگنال جدید:\n"
         f"نماد: {signal['symbol']}\n"
@@ -20,7 +23,6 @@ def format_signal(signal: dict) -> str:
         f"{'✅ حد سود فعال' if signal['technical'] == 'buy' else '⏳ در انتظار حد سود'}"
     )
 
-# 🚀 نقطه شروع اجرای فایل
 def main():
     print("🚀 شروع اجرای فایل signal_bot.py")
 
@@ -47,6 +49,5 @@ def main():
 
     print("🏁 پایان اجرای فایل.")
 
-# 🧨 اجرای مستقیم
 if __name__ == "__main__":
     main()
