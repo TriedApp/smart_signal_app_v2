@@ -3,32 +3,33 @@ from TradingApp.utils.strategy import generate_signal
 from TradingApp.utils.notify import send_email, send_telegram
 
 symbols = [
-    "BTCUSDT", "ETHUSDT", "XRPUSDT", "LTCUSDT", "DOGEUSDT", "SHIBUSDT", "TRXUSDT", "ADAUSDT", "DOTUSDT", "BNBUSDT",
-    "SOLUSDT", "AVAXUSDT", "UNIUSDT", "LINKUSDT", "XLMUSDT", "ATOMUSDT", "EOSUSDT", "DAIUSDT", "USDCUSDT", "MATICUSDT",
-    "AAVEUSDT", "AXSUSDT", "SANDUSDT", "CHZUSDT", "FTMUSDT", "NEARUSDT", "GALAUSDT", "RAYUSDT", "CAKEUSDT", "CRVUSDT",
-    "1INCHUSDT", "ENJUSDT", "BCHUSDT", "ETCUSDT", "XMRUSDT", "ZECUSDT", "SNXUSDT", "COMPUSDT", "YFIUSDT", "ALGOUSDT",
-    "TOMOUSDT", "KSMUSDT", "KNCUSDT", "RENUSDT", "BATUSDT", "SUSHIUSDT", "STORJUSDT", "CELRUSDT", "ANKRUSDT", "CVCUSDT",
-    "BALUSDT", "GMTUSDT", "LRCUSDT", "DYDXUSDT", "GMXUSDT", "OPUSDT", "ARBUSDT", "INJUSDT", "PEPEUSDT", "FLOKIUSDT",
-    "ORDIUSDT", "WLDUSDT", "TUSDUSDT", "PYTHUSDT", "BONKUSDT", "TIAUSDT", "JUPUSDT", "GRTUSDT", "RNDRUSDT", "LPTUSDT",
-    "MINAUSDT", "BLURUSDT", "ICPUSDT", "APTUSDT", "SUIUSDT", "C98USDT", "XVSUSDT", "RUNEUSDT", "DODOUSDT", "HOOKUSDT",
-    "SSVUSDT", "IDUSDT", "LDOUSDT", "FETUSDT", "AGIXUSDT", "OCEANUSDT", "BANDUSDT", "QNTUSDT", "STMXUSDT", "XNOUSDT",
-    "NMRUSDT", "NKNUSDT", "CTSIUSDT", "SKLUSDT", "VETUSDT", "VTHOUSDT", "COTIUSDT", "MASKUSDT", "HIGHUSDT", "SPELLUSDT",
-    "SXPUSDT", "DENTUSDT"
+    "BTCUSDT", "ETHUSDT", "XRPUSDT", "LTCUSDT", "DOGEUSDT", "SHIBUSDT", "TRXUSDT", "ADAUSDT", "DOTUSDT", "BNBUSDT"
 ]
 
-intervals = ["5m", "15m", "30m", "1hour", "4hour", "1day"]
+# تایم‌فریم‌های معتبر برای MEXC
+intervals = ["5m", "15m", "30m", "1h", "4h", "1d"]
 
 for symbol in symbols:
     print(f"\n📡 بررسی نماد: {symbol}")
     df_dict = {}
+
     for interval in intervals:
         try:
             df = get_mexc_klines(symbol, interval)
-            df_dict[interval] = df
+            if df is not None and not df.empty:
+                df_dict[interval] = df
+            else:
+                print(f"⚠️ دیتافریم خالی برای {symbol} در تایم‌فریم {interval}")
         except Exception as e:
             print(f"❌ خطا در دریافت داده {interval} برای {symbol}: {e}")
 
+    # بررسی سیگنال فقط اگر داده تایم‌فریم 1h موجود باشه
+    if "1h" not in df_dict or df_dict["1h"].empty:
+        print(f"⚠️ داده تایم‌فریم 1h برای {symbol} موجود نیست، تحلیل انجام نمی‌شود.")
+        continue
+
     signal = generate_signal(df_dict, ai_trend="bullish", tf1h_trend="bullish")
+
     if signal:
         msg = (
             f"📈 سیگنال {signal['type']} برای {symbol}\n"
