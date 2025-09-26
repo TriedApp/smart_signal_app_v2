@@ -1,45 +1,20 @@
-import sys
-import os
-
-# 🛠 اضافه کردن مسیر root پروژه به sys.path
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(current_dir, "..", ".."))
-sys.path.insert(0, project_root)
-
-# 📡 ایمپورت توابع سیگنال و ارسال
-from TradingApp.scripts.multi_symbol_runner import generate_all_signals
+from TradingApp.utils.data import get_mexc_klines
+from TradingApp.utils.strategy import generate_signal
 from TradingApp.utils.notify import send_email, send_telegram
 
-def format_signal(signal: dict) -> str:
-    return (
-        f"📡 سیگنال جدید:\n"
-        f"نماد: {signal['symbol']}\n"
-        f"نوع: {'📈 خرید' if signal['technical'] == 'buy' else '📉 فروش'}\n"
-        f"ورود: {signal.get('entry', '0.00000000')}\n"
-        f"حد ضرر: {signal.get('stop_loss', '0.00000000')}\n"
-        f"{'✅ حد سود فعال' if signal['technical'] == 'buy' else '⏳ در انتظار حد سود'}"
-    )
+symbols = ["BTCUSDT", "ETHUSDT", "XRPUSDT", "LTCUSDT", "DOGEUSDT", "SHIBUSDT", "TRXUSDT", "ADAUSDT", "DOTUSDT", "BNBUSDT"]
 
-def main():
-    print("🚀 شروع اجرای فایل signal_bot.py")
+for s in symbols:
+    print(f"📡 دریافت داده برای {s}...")
+    df = get_mexc_klines(s)
+    if df.empty:
+        print("⚠️ دیتافریم خالی است.")
+        continue
 
-    symbols = ["BTCUSDT", "ETHUSDT", "BNBUSDT"]
-    signals = generate_all_signals(symbols)
-
-    all_messages = []
-    for signal in signals:
-        msg = format_signal(signal)
-        print(f"\n{msg}")
-        all_messages.append(msg)
-
-    if all_messages:
-        final_text = "\n\n".join(all_messages)
-        send_email(final_text)
-        send_telegram(final_text)
+    sig = generate_signal(df, ai="bullish", tf="bullish")
+    if sig:
+        msg = f"📈 سیگنال {sig['type']} برای {s}\nحد ضرر: {sig['stop']}"
+        send_email(msg)
+        send_telegram(msg)
     else:
-        print("⚠️ هیچ سیگنالی برای ارسال وجود ندارد.")
-
-    print("🏁 پایان اجرای فایل.")
-
-if __name__ == "__main__":
-    main()
+        print(f"⏳ سیگنالی برای {s} یافت نشد.")

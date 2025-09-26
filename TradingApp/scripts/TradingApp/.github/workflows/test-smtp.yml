@@ -1,0 +1,29 @@
+name: Signal Dispatcher
+
+on:
+  workflow_dispatch:
+
+jobs:
+  send-signal:
+    runs-on: ubuntu-latest
+    env:
+      EMAIL_USER: ${{ secrets.EMAIL_USER }}
+      EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pandas numpy requests
+
+      - name: Run signal dispatcher
+        run: |
+          echo "📡 اجرای فایل signal_bot.py از مسیر صحیح"
+          python TradingApp/scripts/signal_bot.py

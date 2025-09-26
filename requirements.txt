@@ -1,7 +1,4 @@
-fastapi
-uvicorn
-pandas
-ta
-scikit-learn
-numpy
 requests
+pandas
+numpy
+ta-lib
