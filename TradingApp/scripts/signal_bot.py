@@ -1,18 +1,17 @@
 from TradingApp.scripts.multi_symbol_runner import generate_all_signals
 from TradingApp.utils.notify import send_email, send_telegram
-import os
 
-def format_signal(symbol: str, signal_type: str) -> str:
+def format_signal(signal: dict) -> str:
     """
     قالب‌بندی سیگنال برای ارسال.
     """
     return (
-        f"📡 سیگنال جدید\n"
-        f"نماد: {symbol}\n"
-        f"نوع: {'📈 خرید' if signal_type == 'buy' else '📉 فروش'}\n"
-        f"ورود: 0.00000000\n"
-        f"حد ضرر: 0.00000000\n"
-        f"{'✅ حد سود فعال' if signal_type == 'buy' else '⏳ در انتظار حد سود'}"
+        f"📡 سیگنال جدید:\n"
+        f"نماد: {signal['symbol']}\n"
+        f"نوع: {'📈 خرید' if signal['technical'] == 'buy' else '📉 فروش'}\n"
+        f"ورود: {signal.get('entry', '0.00000000')}\n"
+        f"حد ضرر: {signal.get('stop_loss', '0.00000000')}\n"
+        f"{'✅ حد سود فعال' if signal['technical'] == 'buy' else '⏳ در انتظار حد سود'}"
     )
 
 def main():
@@ -21,18 +20,15 @@ def main():
     # نمادهای مورد نظر برای تحلیل
     symbols = ["BTCUSDT", "ETHUSDT", "BNBUSDT"]
 
-    # اجرای تحلیل روی همه نمادها
+    # دریافت سیگنال‌ها
     signals = generate_all_signals(symbols)
 
     # ساخت پیام نهایی
     all_messages = []
-    for symbol, signal_type in signals.items():
-        if signal_type:
-            msg = format_signal(symbol, signal_type)
-            print(f"\n✅ سیگنال برای {symbol}:\n{msg}")
-            all_messages.append(msg)
-        else:
-            print(f"\n⏳ سیگنالی برای {symbol} یافت نشد.")
+    for signal in signals:
+        msg = format_signal(signal)
+        print(f"\n{msg}")
+        all_messages.append(msg)
 
     # ارسال به ایمیل و تلگرام
     if all_messages:
