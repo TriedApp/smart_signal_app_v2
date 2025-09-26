@@ -18,9 +18,9 @@ def generate_all_signals(symbols: list, interval: str = "1h") -> list:
             signals.append({
                 "symbol": symbol,
                 "technical": signal_type,
-                "entry": 0.00000000,       # قابل تنظیم در آینده
-                "stop_loss": 0.00000000,   # قابل تنظیم در آینده
-                "take_profit": None        # قابل محاسبه در آینده
+                "entry": 0.00000000,
+                "stop_loss": 0.00000000,
+                "take_profit": None
             })
         else:
             print(f"⏳ سیگنالی برای {symbol} یافت نشد.")
