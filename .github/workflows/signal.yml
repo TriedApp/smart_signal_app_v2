@@ -9,10 +9,6 @@ jobs:
   send-signal:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: smart_signal_app_v2  # مسیر درست اجرای پروژه
-
     steps:
       - name: 📥 دریافت کد پروژه
         uses: actions/checkout@v3
@@ -26,6 +22,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: 🚀 اجرای فایل سیگنال‌دهی
+        working-directory: smart_signal_app_v2
         run: python TradingApp/scripts/signal_bot.py
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
