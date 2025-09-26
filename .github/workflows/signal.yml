@@ -21,8 +21,10 @@ jobs:
       - name: 📦 نصب وابستگی‌ها
         run: pip install -r requirements.txt
 
-      - name: 🚀 اجرای فایل سیگنال‌دهی
-        run: python TradingApp/scripts/signal_bot.py
+      - name: 🚀 اجرای فایل سیگنال‌دهی با تنظیم مسیر ایمپورت
+        run: |
+          export PYTHONPATH=$(pwd)
+          python TradingApp/scripts/signal_bot.py
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
