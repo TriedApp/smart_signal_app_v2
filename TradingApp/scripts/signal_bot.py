@@ -1,19 +1,16 @@
-# 🚀 signal_bot.py — نسخه اصلاح‌شده برای GitHub Actions و اجرای لوکال
-
 import sys
 import os
 
-# 🛠 تنظیم مسیر برای شناسایی ماژول‌ها در GitHub Actions
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+# 🛠 اضافه کردن مسیر root پروژه به sys.path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, "..", ".."))
+sys.path.insert(0, project_root)
 
 # 📡 ایمپورت توابع سیگنال و ارسال
 from TradingApp.scripts.multi_symbol_runner import generate_all_signals
 from TradingApp.utils.notify import send_email, send_telegram
 
 def format_signal(signal: dict) -> str:
-    """
-    قالب‌بندی سیگنال برای ارسال.
-    """
     return (
         f"📡 سیگنال جدید:\n"
         f"نماد: {signal['symbol']}\n"
@@ -26,20 +23,15 @@ def format_signal(signal: dict) -> str:
 def main():
     print("🚀 شروع اجرای فایل signal_bot.py")
 
-    # 🎯 نمادهای مورد نظر برای تحلیل
     symbols = ["BTCUSDT", "ETHUSDT", "BNBUSDT"]
-
-    # 📊 دریافت سیگنال‌ها
     signals = generate_all_signals(symbols)
 
-    # 🧾 ساخت پیام نهایی
     all_messages = []
     for signal in signals:
         msg = format_signal(signal)
         print(f"\n{msg}")
         all_messages.append(msg)
 
-    # 📤 ارسال به ایمیل و تلگرام
     if all_messages:
         final_text = "\n\n".join(all_messages)
         send_email(final_text)
