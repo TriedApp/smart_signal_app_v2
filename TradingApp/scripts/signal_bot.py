@@ -18,7 +18,7 @@ symbols = (
     ]
 )
 
-interval = "1h"
+interval = "15m"  # مقدار معتبر برای اسپات MEXC
 save_path = "data/klines"
 os.makedirs(save_path, exist_ok=True)
 
@@ -26,12 +26,12 @@ async def fetch_klines(session, symbol, interval):
     url = f"https://api.mexc.com/api/v3/klines?symbol={symbol}&interval={interval}&limit=100"
     try:
         async with session.get(url) as response:
-            data = await response.json()
-            if not isinstance(data, list) or not data:
+            klines = await response.json()
+            if not isinstance(klines, list) or not klines:
                 print(f"⚠️ دیتافریم خالی برای {symbol}")
                 return symbol, None
 
-            df = pd.DataFrame(data, columns=[
+            df = pd.DataFrame(klines, columns=[
                 "timestamp", "open", "high", "low", "close", "volume",
                 "close_time", "quote_volume", "trades", "taker_buy_base",
                 "taker_buy_quote", "ignore"
