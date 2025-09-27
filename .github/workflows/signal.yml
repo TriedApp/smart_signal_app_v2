@@ -2,8 +2,8 @@ name: Signal Dispatcher
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
-  workflow_dispatch:
+    - cron: '*/5 * * * *'  # اجرای هر 5 دقیقه
+  workflow_dispatch:       # اجرای دستی در صورت نیاز
 
 jobs:
   send-signal:
@@ -19,12 +19,12 @@ jobs:
           python-version: '3.12'
 
       - name: 📦 نصب وابستگی‌ها
-        run: pip install -r requirements.txt
+        run: pip install -r TradingApp/requirements.txt
 
-      - name: 🚀 اجرای فایل سیگنال‌دهی با تنظیم مسیر ایمپورت
+      - name: 🚀 اجرای ربات شکار سیگنال
         run: |
-          export PYTHONPATH=$(pwd)
-          python TradingApp/scripts/signal_bot.py
+          export PYTHONPATH=$(pwd)/TradingApp
+          python TradingApp/scripts/signal_bot_mexc.py
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}

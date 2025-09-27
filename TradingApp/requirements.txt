@@ -6,3 +6,5 @@ openai
 transformers
 smtplib
 email-validator
+pandas
+schedule

@@ -1,81 +1,62 @@
-import talib
 import pandas as pd
 
-def heikin_ashi(df):
-    ha_df = pd.DataFrame(index=df.index)
-    ha_df['close'] = (df['open'] + df['high'] + df['low'] + df['close']) / 4
-    ha_df['open'] = (df['open'].shift(1) + df['close'].shift(1)) / 2
-    ha_df['high'] = df[['high', 'open', 'close']].max(axis=1)
-    ha_df['low'] = df[['low', 'open', 'close']].min(axis=1)
-    return ha_df
+def sma(s, l): return s.rolling(l).mean()
+def bollinger(s, l=20, d=2): m = sma(s, l); std = s.rolling(l).std(); u = m + d*std; l = m - d*std; b = (s - l) / (u - l); return u, l, b
+def macd(s, f=12, sl=26, sig=9): ef, es = s.ewm(span=f).mean(), s.ewm(span=sl).mean(); m = ef - es; sg = m.ewm(span=sig).mean(); h = m - sg; return m, sg, h
+def stochrsi(df, l=14): lo, hi = df['low'].rolling(l).min(), df['high'].rolling(l).max(); return 100 * (df['close'] - lo) / (hi - lo)
+def heikin(df): ha = df.copy(); ha['ha_close'] = df[['open','high','low','close']].mean(axis=1); ho = [(df['open'][0]+df['close'][0])/2]; [ho.append((ho[i-1]+ha['ha_close'][i-1])/2) for i in range(1,len(df))]; ha['ha_open'] = ho; ha['ha_high'] = df[['high','low','open','close']].max(axis=1); ha['ha_low'] = df[['high','low','open','close']].min(axis=1); return ha
+def engulf_up(p,c): return c['close']>c['open'] and p['close']<p['open'] and c['close']>p['open'] and c['open']<p['close']
+def engulf_down(p,c): return c['close']<c['open'] and p['close']>p['open'] and c['close']<p['open'] and c['open']>p['close']
+def ha_pos(r): return 'above' if r['ha_low']>r['sma10'] else 'below' if r['ha_high']<r['sma10'] else 'inside'
+def takeprofit(r,tol=0.001): return any(abs(r['ha_close']-r[m])/r[m]<tol for m in ['sma10','sma50','sma200'] if pd.notna(r[m]))
+def vol_ok(df,i): return True if i<10 else df['volume'].iloc[i]>df['volume'].iloc[i-10:i].mean()
+def ai_ok(r): return sum([r['macd']>r['macd_signal'], r['close']>r['sma50'], r['sma10']>r['sma50']])>=2
 
-def generate_signal(df_dict, ai_trend="bullish", tf1h_trend="bullish"):
-    df_1h = df_dict.get("1hour")
-    if df_1h is None or df_1h.empty:
-        return None
+def run_strategy(df, df_htf=None, debug=False):
+    ha = heikin(df)
+    for k in ['ha_open','ha_close','ha_high','ha_low']: df[k] = ha[k]
+    df['sma10'], df['sma50'], df['sma200'] = sma(df['close'],10), sma(df['close'],50), sma(df['close'],200)
+    df['bb_upper'], df['bb_lower'], df['bb_percent_b'] = bollinger(df['close'])
+    df['macd'], df['macd_signal'], df['macd_hist'] = macd(df['close'])
+    df['stoch_rsi'] = stochrsi(df)
+    signals = []
 
-    ha = heikin_ashi(df_1h)
-    ma10 = talib.SMA(ha['close'], timeperiod=10)
-    up, mid, lo = talib.BBANDS(df_1h['close'], timeperiod=20)
-    pb = (df_1h['close'] - lo) / (up - lo)
+    for i in range(1,len(df)):
+        r, p = df.iloc[i], df.iloc[i-1]
+        htf_ok = True
+        if df_htf is not None:
+            t = df_htf.index[df_htf.index <= df.index[i]]
+            if len(t): htf_ok = df_htf.loc[t[-1]]['ha_close'] > df_htf.loc[t[-1]]['ha_open']
 
-    macd, macd_signal, _ = talib.MACD(df_1h['close'])
-    macd_cross_up = macd.iloc[-2] < macd_signal.iloc[-2] and macd.iloc[-1] > macd_signal.iloc[-1]
-    macd_cross_down = macd.iloc[-2] > macd_signal.iloc[-2] and macd.iloc[-1] < macd_signal.iloc[-1]
-
-    k, d = talib.STOCHRSI(df_1h['close'])
-    stoch_up = k.iloc[-2] < 20 and k.iloc[-1] > d.iloc[-1]
-    stoch_down = k.iloc[-2] > 80 and k.iloc[-1] < d.iloc[-1]
-
-    engulf = talib.CDLENGULFING(df_1h['open'], df_1h['high'], df_1h['low'], df_1h['close'])
-    bullish_engulf = engulf.iloc[-1] > 0
-    bearish_engulf = engulf.iloc[-1] < 0
-
-    volume_ok = df_1h['volume'].iloc[-1] > df_1h['volume'].rolling(20).mean().iloc[-1]
-
-    conditions_long = [
-        ma10.iloc[-1] < ha['close'].iloc[-1],
-        pb.iloc[-1] > pb.iloc[-2],
-        macd_cross_up,
-        stoch_up,
-        bullish_engulf,
-        volume_ok,
-        ai_trend == "bullish",
-        tf1h_trend == "bullish"
-    ]
-
-    conditions_short = [
-        ma10.iloc[-1] > ha['close'].iloc[-1],
-        pb.iloc[-1] < pb.iloc[-2],
-        macd_cross_down,
-        stoch_down,
-        bearish_engulf,
-        volume_ok,
-        ai_trend == "bearish",
-        tf1h_trend == "bearish"
-    ]
-
-    strength_long = sum(conditions_long)
-    strength_short = sum(conditions_short)
-
-    if strength_long >= 6:
-        stop = round(df_1h['low'].iloc[-1] * 0.995, 4)
-        take_profit = "MA10/50/200 نزدیک شد"
-        return {
-            "type": "LONG",
-            "strength": "strong" if strength_long == 8 else "moderate",
-            "stop": stop,
-            "take_profit": take_profit
+        long = {
+            "MA10": ha_pos(r)=='above',
+            "Bollinger": p['bb_percent_b']<0.2 and r['bb_percent_b']>0.2,
+            "MACD": p['macd']<p['macd_signal'] and r['macd']>r['macd_signal'],
+            "StochRSI": p['stoch_rsi']<20 and r['stoch_rsi']>20,
+            "Engulf": engulf_up(p,r),
+            "Volume": vol_ok(df,i),
+            "AI": ai_ok(r),
+            "HTF": htf_ok
         }
 
-    if strength_short >= 6:
-        stop = round(df_1h['high'].iloc[-1] * 1.005, 4)
-        take_profit = "MA10/50/200 نزدیک شد"
-        return {
-            "type": "SHORT",
-            "strength": "strong" if strength_short == 8 else "moderate",
-            "stop": stop,
-            "take_profit": take_profit
+        short = {
+            "MA10": ha_pos(r)=='below',
+            "Bollinger": p['bb_percent_b']>0.8 and r['bb_percent_b']<0.8,
+            "MACD": p['macd']>p['macd_signal'] and r['macd']<r['macd_signal'],
+            "StochRSI": p['stoch_rsi']>80 and r['stoch_rsi']<80,
+            "Engulf": engulf_down(p,r),
+            "Volume": vol_ok(df,i),
+            "AI": not ai_ok(r),
+            "HTF": not htf_ok
         }
 
-    return None
+        if debug:
+            print(f"\n🟢 LONG @ {df.index[i]}"); [print(f"📌 {k}: {v}") for k,v in long.items()]
+            print(f"\n🔴 SHORT @ {df.index[i]}"); [print(f"📌 {k}: {v}") for k,v in short.items()]
+
+        if all(long.values()):
+            signals.append((df.index[i],'LONG',r['close'],r['low']*0.995,takeprofit(r)))
+        if all(short.values()):
+            signals.append((df.index[i],'SHORT',r['close'],r['high']*1.005,takeprofit(r)))
+
+    return signals
