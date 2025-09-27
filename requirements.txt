@@ -1,5 +1,7 @@
-requests
+fastapi
+uvicorn
 pandas
+ta
+scikit-learn
 numpy
-ta-lib
-aiohttp
+requests
